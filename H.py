@@ -3,7 +3,8 @@ import time
 import zlib
 import json
 import os
-import sqlite3
+import pandas as pd
+from collections import OrderedDict
 main_path_data = os.path.abspath("./data")
 
 try:
@@ -23,79 +24,131 @@ def my_hotbit():
                 print(rep2, '\n', '\n')
                 if rep2['method'] == 'depth.update':
                     print('#################',rep2['params'][2])
-                    if rep2['params'][2] == 'PZMBTC':
-                        b = rep2['params'][1]["bids"][:5]
-                        a = rep2['params'][1]["asks"][:5]
-
-                        Hot_buy = {}
-                        for i in b:
-                            if not Hot_buy:
-                                Hot_buy.update({i[0]: float(i[1])})
-                            else:
-                                sump = float(i[1]) + float(list(Hot_buy.values())[-1])
-                                Hot_buy.update({i[0]: float(sump)})
-
-                        Hot_sell = {}
-                        for i in a:
-                            if not Hot_sell:
-                                Hot_sell.update({i[0]: float(i[1])})
-                            else:
-                                sump = float(i[1]) + float(list(Hot_sell.values())[-1])
-                                Hot_sell.update({i[0]: float(sump)})
-
-                        Hot_PU = []
-                        for k, v in Hot_sell.items():
-                            Hot_PU.append(('hot', 'BTC', 'PZM', 'buy', k, v))
-
-                        for k, v in Hot_buy.items():
-                            Hot_PU.append(('hot', 'PZM', 'BTC', 'sell', k, v))
-
-                        conn = sqlite3.connect(main_path_data + "\\hot.db")
-                        cursor = conn.cursor()
-                        sql = 'DELETE FROM PZMBTC'
-                        cursor.execute(sql)
-
-                        cursor.executemany("INSERT INTO PZMBTC VALUES (?,?,?,?,?,?)", Hot_PU)
-                        conn.commit()
-                        conn.close()
-
-                    elif rep2['params'][2] == 'PZMUSDT':
-                        b = rep2['params'][1]["bids"][:5]
-                        a = rep2['params'][1]["asks"][:5]
-
-                        Hot_buy = {}
-                        for i in b:
-                            if not Hot_buy:
-                                Hot_buy.update({i[0]: float(i[1])})
-                            else:
-                                sump = float(i[1]) + float(list(Hot_buy.values())[-1])
-                                Hot_buy.update({i[0]: float(sump)})
-
-                        Hot_sell = {}
-                        for i in a:
-                            if not Hot_sell:
-                                Hot_sell.update({i[0]: float(i[1])})
-                            else:
-                                sump = float(i[1]) + float(list(Hot_sell.values())[-1])
-                                Hot_sell.update({i[0]: float(sump)})
-
-                        Hot_PU = []
-                        for k, v in Hot_sell.items():
-                            Hot_PU.append(('hot', 'USDT', 'PZM', 'buy', k, v))
-
-                        for k, v in Hot_buy.items():
-                            Hot_PU.append(('hot', 'PZM', 'USDT', 'sell', k, v))
-
-                        conn = sqlite3.connect(main_path_data + "\\hot.db")
-                        cursor = conn.cursor()
-                        sql = 'DELETE FROM PZMUSDT'
-                        cursor.execute(sql)
-
-                        cursor.executemany("INSERT INTO PZMUSDT VALUES (?,?,?,?,?,?)", Hot_PU)
-                        conn.commit()
-                        conn.close()
-                    else:
+                    if rep2['params'][0] == 'False':
                         pass
+                    else:
+                        if 'bids' not in rep2['params'][1]:
+                            pass
+                        if 'asks' not in rep2['params'][1]:
+                            pass
+                        else:
+                            if rep2['params'][2] == 'PZMBTC':
+                                b = rep2['params'][1]["bids"][:5]
+                                a = rep2['params'][1]["asks"][:5]
+
+                                # print('###########   BBB :',b)
+                                # print('###########   BBB full:', rep2['params'][1]["bids"])
+                                #
+                                # hb = OrderedDict(sorted(b.items(), key=lambda t: t[1]), reverse=False)
+                                # hbb = dict((k, v) for k, v in hb.items() if v > 0.1)
+                                #
+                                # ha = OrderedDict(sorted(a.items(), key=lambda t: t[0]), reverse=True)
+                                # haa = dict((k, v) for k, v in ha.items() if v > 0.1)
+
+                                # bh = float(list(hbb.keys())[0])
+                                # ba = float(list(haa.keys())[0])
+                                #
+                                # # print(bh)
+                                # # print(ba)
+                                #
+                                # if bh > ba:
+                                #     del hbb[bh]
+                                # else:
+                                #     pass
+
+                                Hot_buy = {}
+                                for i in b:
+                                    if not Hot_buy:
+                                        Hot_buy.update({i[0]: float(i[1])})
+                                    else:
+                                        if i[0]== 'reverse':
+                                            pass
+                                        else:
+                                            sump = float(i[1]) + float(list(Hot_buy.values())[-1])
+                                            Hot_buy.update({i[0]: float(sump)})
+
+                                Hot_sell = {}
+                                for i in a:
+                                    if not Hot_sell:
+                                        Hot_sell.update({i[0]: float(i[1])})
+                                    else:
+                                        if i[0]== 'reverse':
+                                            pass
+                                        else:
+                                            sump = float(i[1]) + float(list(Hot_sell.values())[-1])
+                                            Hot_sell.update({i[0]: float(sump)})
+
+                                Hot_PU = []
+                                for k, v in Hot_sell.items():
+                                    Hot_PU.append(('hot', 'BTC', 'PZM', 'buy', k, v))
+
+                                for k, v in Hot_buy.items():
+                                    Hot_PU.append(('hot', 'PZM', 'BTC', 'sell', k, v))
+
+                                columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+                                df = pd.DataFrame(Hot_PU, columns=columns)
+                                # print(df)
+
+                                df.to_csv(main_path_data + "\\hot_bd_PB.csv", index=False)
+                            elif rep2['params'][2] == 'PZMUSDT':
+                                b = rep2['params'][1]["bids"][:5]
+                                a = rep2['params'][1]["asks"][:5]
+
+                                # print('###########  USD  BBB :', b)
+                                # print('###########  USD  BBB full:', rep2['params'][1]["bids"])
+                                #
+                                # hb = OrderedDict(sorted(b.items(), key=lambda t: t[1]), reverse=False)
+                                # hbb = dict((k, v) for k, v in hb.items() if v > 0.1)
+                                #
+                                # ha = OrderedDict(sorted(a.items(), key=lambda t: t[0]), reverse=True)
+                                # haa = dict((k, v) for k, v in ha.items() if v > 0.1)
+                                #
+                                # bh = float(list(hbb.keys())[0])
+                                # ba = float(list(haa.keys())[0])
+                                #
+                                # print(bh)
+                                # print(ba)
+                                #
+                                #
+                                # if bh > ba:
+                                #     del hbb[bh]
+                                # else:
+                                #     pass
+
+
+                                Hot_buy = {}
+                                for i in b:
+                                    if not Hot_buy:
+                                        if float(i[1])<0.1:
+                                            pass
+                                        else:
+                                            Hot_buy.update({i[0]: float(i[1])})
+                                    else:
+                                        sump = float(i[1]) + float(list(Hot_buy.values())[-1])
+                                        Hot_buy.update({i[0]: float(sump)})
+
+                                Hot_sell = {}
+                                for i in a:
+                                    if not Hot_sell:
+                                        Hot_sell.update({i[0]: float(i[1])})
+                                    else:
+                                        sump = float(i[1]) + float(list(Hot_sell.values())[-1])
+                                        Hot_sell.update({i[0]: float(sump)})
+
+                                Hot_PU = []
+                                for k, v in Hot_sell.items():
+                                    Hot_PU.append(('hot', 'USDT', 'PZM', 'buy', k, v))
+
+                                for k, v in Hot_buy.items():
+                                    Hot_PU.append(('hot', 'PZM', 'USDT', 'sell', k, v))
+
+                                columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+                                df = pd.DataFrame(Hot_PU, columns=columns)
+                                # print(df)
+
+                                df.to_csv(main_path_data + "\\hot_bd_PU.csv", index=False)
+                            else:
+                                pass
                 else:
                     pass
                 time.sleep(0.4)

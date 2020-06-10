@@ -506,7 +506,7 @@ def all_csv(birga_1, birga_2, rate1, rate2, val1, val2, val4, val1_vol, val2_vol
         done = int(round(time.time() * 1000))
         now = dt.datetime.now()
         df_all = pd.read_csv(main_path_data + "\\all_data.csv")
-        timer2 = now.strftime("%H:%M:%S")
+        timer2 = now.strftime("%Y-%m-%d %H:%M:%S")
         df2 = pd.DataFrame({"TIME": [timer2],
                             "birga_x": [birga_1],
                             "birga_y": [birga_2],

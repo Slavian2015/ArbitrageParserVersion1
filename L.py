@@ -5,10 +5,10 @@ import ssl
 import LivecoinWSapi_pb2
 import hashlib
 import hmac
-import json
 import os
 main_path_data = os.path.abspath("./data")
-import sqlite3
+import pandas as pd
+from collections import OrderedDict
 
 MY_API_KEY = "gT5fA5uh2f3vbkYxprGU6UYmQxD7uQA4"
 MY_SECRET_KEY = b"dV3dGBU6zC85WE53ezNBZSKRVTkA8hxG"
@@ -87,27 +87,48 @@ def my_livecoin():
     def printOrderBookRaw(symbol):
       book = orderbooksraw[symbol]
       print("##############  LIVE  #################")
-      # print(symbol, '\n', '\n')
-      print(book)
       if symbol == "PZM/USD":
           a = book["asks"]
           b = book["bids"]
 
-          Live_buy = {}
+
+          L_b ={}
           for i in b.values():
+              L_b.update({i[0]: float(i[1])})
+          L_a ={}
+          for i in a.values():
+              L_a.update({i[0]: float(i[1])})
+
+          lb = OrderedDict(sorted(L_b.items(), key=lambda t: t[1]), reverse=False)
+          lbb = dict((k, v) for k, v in lb.items() if v > 0.1)
+
+          print(lbb)
+
+          la = OrderedDict(sorted(L_a.items(), key=lambda t: t[0]), reverse=True)
+          laa = dict((k, v) for k, v in la.items() if v > 0.1)
+
+          print(laa)
+          Live_buy = {}
+          for k,v in lbb.items():
               if not Live_buy:
-                  Live_buy.update({i[0]: float(i[1])})
+                  Live_buy.update({k: float(v)})
               else:
-                  sump = float(i[1]) + float(list(Live_buy.values())[-1])
-                  Live_buy.update({i[0]: float(sump)})
+                  if k == 'reverse':
+                      pass
+                  else:
+                      sump = float(v) + float(list(Live_buy.values())[-1])
+                      Live_buy.update({k: float(sump)})
 
           Live_sell = {}
-          for i in a.values():
+          for k,v in laa.items():
               if not Live_sell:
-                  Live_sell.update({i[0]: float(i[1])})
+                  Live_sell.update({k: float(v)})
               else:
-                  sump = float(i[1]) + float(list(Live_sell.values())[-1])
-                  Live_sell.update({i[0]: float(sump)})
+                  if k == 'reverse':
+                      pass
+                  else:
+                      sump = float(v) + float(list(Live_sell.values())[-1])
+                      Live_sell.update({k: float(sump)})
 
           Live_PU = []
           for k, v in Live_sell.items():
@@ -116,34 +137,72 @@ def my_livecoin():
           for k, v in Live_buy.items():
               Live_PU.append(('live', 'PZM', 'USD', 'sell', k, v))
 
-          conn = sqlite3.connect(main_path_data + "\\live.db")
-          cursor = conn.cursor()
-          sql = 'DELETE FROM PZMUSD'
-          cursor.execute(sql)
 
-          cursor.executemany("INSERT INTO PZMUSD VALUES (?,?,?,?,?,?)", Live_PU)
-          conn.commit()
-          conn.close()
+
+
+          columns = ['birga','valin','valout','direction','rates','volume']
+          df = pd.DataFrame(Live_PU, columns=columns)
+
+          try:
+            df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
+          except Exception as e:
+              print('#####   OOOPsss .... DB   ######')
+              df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
+
+
+          # import threading, queue
+          # to_write = queue.Queue()
+          #
+          # def writer():
+          #     # Call to_write.get() until it returns None
+          #     # for df in iter(to_write.get, None):
+          #     with open(main_path_data + "\\live_bd_PU.csv", 'w') as f:
+          #         df.to_csv(f, index=False)
+          #
+          # threading.Thread(target=writer).start()
+          # to_write.put(df)
+          # # enqueue None to instruct the writer thread to exit
+          # to_write.put(None)
+
 
       elif symbol == "PZM/BTC":
           a = book["asks"]
           b = book["bids"]
 
-          Live_buy = {}
+          L_b = {}
           for i in b.values():
+              L_b.update({i[0]: float(i[1])})
+          L_a = {}
+          for i in a.values():
+              L_a.update({i[0]: float(i[1])})
+
+          lb = OrderedDict(sorted(L_b.items(), key=lambda t: t[0]), reverse=False)
+          lbb = dict((k, v) for k, v in lb.items() if v > 0.1)
+
+          la = OrderedDict(sorted(L_a.items(), key=lambda t: t[0]), reverse=False)
+          laa = dict((k, v) for k, v in la.items() if v > 0.1)
+
+          Live_buy = {}
+          for k,v in lbb.items():
               if not Live_buy:
-                  Live_buy.update({i[0]: float(i[1])})
+                  Live_buy.update({k: float(v)})
               else:
-                  sump = float(i[1]) + float(list(Live_buy.values())[-1])
-                  Live_buy.update({i[0]: float(sump)})
+                  if k == 'reverse':
+                      pass
+                  else:
+                      sump = float(v) + float(list(Live_buy.values())[-1])
+                      Live_buy.update({k: float(sump)})
 
           Live_sell = {}
-          for i in a.values():
+          for k,v in laa.items():
               if not Live_sell:
-                  Live_sell.update({i[0]: float(i[1])})
+                  Live_sell.update({k: float(v)})
               else:
-                  sump = float(i[1]) + float(list(Live_sell.values())[-1])
-                  Live_sell.update({i[0]: float(sump)})
+                  if k == 'reverse':
+                      pass
+                  else:
+                      sump = float(v) + float(list(Live_sell.values())[-1])
+                      Live_sell.update({k: float(sump)})
 
           Live_PU = []
           for k, v in Live_sell.items():
@@ -152,74 +211,72 @@ def my_livecoin():
           for k, v in Live_buy.items():
               Live_PU.append(('live', 'PZM', 'BTC', 'sell', k, v))
 
-          conn = sqlite3.connect(main_path_data + "\\live.db")
-          cursor = conn.cursor()
-          sql = 'DELETE FROM PZMBTC'
-          cursor.execute(sql)
+          columns = ['birga','valin','valout','direction','rates','volume']
+          df = pd.DataFrame(Live_PU, columns=columns)
+          # print(df)
 
-          cursor.executemany("INSERT INTO PZMBTC VALUES (?,?,?,?,?,?)", Live_PU)
-          conn.commit()
-          conn.close()
+          # df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False)
+          try:
+            df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
+          except Exception as e:
+              print('#####   OOOPsss .... DB BTC  ######')
+              df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
       else:
           pass
 
 
-
+      # for type in ["bids", "asks"]:
+      #     str = type+"raw: "
+      #     for b in sorted(book[type], key=lambda x: book[type][x][0], reverse=(type == "bids")):
+      #         if float(book[type][b][1]) > 0:
+      # #
+      # #             # print("###############################")
+      # #             # print("symbol :", symbol)
+      # #             # print("TYPE :", type)
+      # #             # print("PRICE :", float(book[type][b][0]))
+      # #             # print("AMOUNT:", float(book[type][b][1]))
+      # #             # print("###############################")
+      # #
+      # #             if type == 'asks':
+      # #                 direction = 'sell'
+      # #                 pass
+      # #             else:
+      # #                 direction = 'buy'
+      # #                 pass
+      # #
+      # #             if symbol == "PZM/USD":
+      # #                 elsym = "PZM/USD"
+      # #             else:
+      # #                 elsym = "PZM/BTC"
+      # #
+      #
+      #
+      #             # conn = sqlite3.connect("kurses.db")
+      #             # cursor = conn.cursor()
+      #             # cursor.execute(
+      #             #     "UPDATE kurses SET price=?, amount=? WHERE para_valut = ? AND birga = 'live' AND direction = ?",
+      #             #     (float(book[type][b][0]), float(book[type][b][1]), elsym, direction))
+      #             # conn.commit()
+      #             # conn.close()
       #
       #
       #
-      for type in ["bids", "asks"]:
-          str = type+"raw: "
-          for b in sorted(book[type], key=lambda x: book[type][x][0], reverse=(type == "bids")):
-              if float(book[type][b][1]) > 0:
       #
-      #             # print("###############################")
-      #             # print("symbol :", symbol)
-      #             # print("TYPE :", type)
-      #             # print("PRICE :", float(book[type][b][0]))
-      #             # print("AMOUNT:", float(book[type][b][1]))
-      #             # print("###############################")
+      #             # a_file = open(main_path_data + "\\kurses.json", "r")
+      #             # json_object = json.load(a_file)
+      #             # a_file.close()
+      #             # json_object["live"][elsym][direction]['price'] = float(book[type][b][0])
+      #             # json_object["live"][elsym][direction]['amount'] = float(book[type][b][1])
+      #             #
+      #             # a_file = open(main_path_data + "\\kurses.json", "w")
+      #             # json.dump(json_object, a_file)
+      #             # a_file.close()
       #
-      #             if type == 'asks':
-      #                 direction = 'sell'
-      #                 pass
-      #             else:
-      #                 direction = 'buy'
-      #                 pass
-      #
-      #             if symbol == "PZM/USD":
-      #                 elsym = "PZM/USD"
-      #             else:
-      #                 elsym = "PZM/BTC"
-      #
-
-
-                  # conn = sqlite3.connect("kurses.db")
-                  # cursor = conn.cursor()
-                  # cursor.execute(
-                  #     "UPDATE kurses SET price=?, amount=? WHERE para_valut = ? AND birga = 'live' AND direction = ?",
-                  #     (float(book[type][b][0]), float(book[type][b][1]), elsym, direction))
-                  # conn.commit()
-                  # conn.close()
-
-
-
-
-                  # a_file = open(main_path_data + "\\kurses.json", "r")
-                  # json_object = json.load(a_file)
-                  # a_file.close()
-                  # json_object["live"][elsym][direction]['price'] = float(book[type][b][0])
-                  # json_object["live"][elsym][direction]['amount'] = float(book[type][b][1])
-                  #
-                  # a_file = open(main_path_data + "\\kurses.json", "w")
-                  # json.dump(json_object, a_file)
-                  # a_file.close()
-
-                  str += ("%d:%s->%s\n" % (b, book[type][b][0], book[type][b][1]))
-                  break
-              else:
-                  continue
-          print ("THIS MY STR :",str)
+      #             str += ("%d:%s->%s\n" % (b, book[type][b][0], book[type][b][1]))
+      #             break
+      #         else:
+      #             continue
+      #     print ("THIS MY STR :",str)
 
     def onNewRawOrders(symbol, orders, initial=False):
         if (initial):
@@ -535,7 +592,7 @@ def my_livecoin():
         # getBalances("BTC", False)
         # getBalances(None, True)
         getBalances(None, False)
-        getLastTrades("BTC/USD", onlyBuy=False)
+        # getLastTrades("BTC/USD", onlyBuy=False)
         # getLastTrades("BTC/USD", onlyBuy=True)
         # getLastTrades("BTC/USD", onlyBuy=None)
         # getLastTrades("BTC/USD", onlyBuy=True, forHour=True)
@@ -573,4 +630,16 @@ def my_livecoin():
     ws.close()
     time.sleep(1)
 
-my_livecoin()
+
+
+if __name__ == "__main__":
+    while True:
+        try:
+            t1 = time.time()
+            my_livecoin()
+            t2 = time.time()
+            print("ALL TIME :", t2-t1)
+            time.sleep(0.2)
+        except Exception as e:
+            print(e)
+            time.sleep(5)
