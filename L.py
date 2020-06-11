@@ -86,56 +86,74 @@ def my_livecoin():
 
     def printOrderBookRaw(symbol):
       book = orderbooksraw[symbol]
-      print("##############  LIVE  #################")
+      print("##############  LIVE  #################", symbol)
       if symbol == "PZM/USD":
-          a = book["asks"]
-          b = book["bids"]
+          # a = book["asks"]
+          # b = book["bids"]
+
+          # for type in ["bids", "asks"]:
+          #     str = type+"raw: "
+          #     for b in sorted(book[type], key=lambda x: book[type][x][0], reverse=(type == "bids")):
+          #         str += ("%d:%s->%s\n" % (b, book[type][b][0], book[type][b][1]))
+          #
+          #     print(str)
+
 
 
           L_b ={}
-          for i in b.values():
-              L_b.update({i[0]: float(i[1])})
+          for b in sorted(book["bids"], key=lambda x: book["bids"][x][0], reverse=True):
+              L_b.update({book["bids"][b][0]: float(book["bids"][b][1])})
+
+
           L_a ={}
-          for i in a.values():
-              L_a.update({i[0]: float(i[1])})
+          for b in sorted(book["asks"], key=lambda x: book["asks"][x][0], reverse=False):
+              L_a.update({book["asks"][b][0]: float(book["asks"][b][1])})
 
-          lb = OrderedDict(sorted(L_b.items(), key=lambda t: t[1]), reverse=False)
-          lbb = dict((k, v) for k, v in lb.items() if v > 0.1)
 
-          print(lbb)
 
-          la = OrderedDict(sorted(L_a.items(), key=lambda t: t[0]), reverse=True)
-          laa = dict((k, v) for k, v in la.items() if v > 0.1)
 
-          print(laa)
           Live_buy = {}
-          for k,v in lbb.items():
+          for k,v in L_b.items():
               if not Live_buy:
-                  Live_buy.update({k: float(v)})
+                  if float(v) <0.1:
+                      pass
+                  else:
+                    Live_buy.update({k: float(v)})
               else:
-                  if k == 'reverse':
+                  if float(v) < 0.1:
                       pass
                   else:
                       sump = float(v) + float(list(Live_buy.values())[-1])
                       Live_buy.update({k: float(sump)})
 
           Live_sell = {}
-          for k,v in laa.items():
+          for k,v in L_a.items():
               if not Live_sell:
-                  Live_sell.update({k: float(v)})
+                  if float(v) <0.1:
+                      pass
+                  else:
+                    Live_sell.update({k: float(v)})
               else:
-                  if k == 'reverse':
+                  if float(v) < 0.1:
                       pass
                   else:
                       sump = float(v) + float(list(Live_sell.values())[-1])
                       Live_sell.update({k: float(sump)})
 
-          Live_PU = []
-          for k, v in Live_sell.items():
-              Live_PU.append(('live', 'USD', 'PZM', 'buy', k, v))
 
-          for k, v in Live_buy.items():
-              Live_PU.append(('live', 'PZM', 'USD', 'sell', k, v))
+          Live_buy = list(Live_buy.items())[:5]
+          Live_sell = list(Live_sell.items())[:5]
+
+
+          print('LB USD', Live_buy)
+          print('LA USD', Live_sell)
+
+          Live_PU = []
+          for i in Live_sell:
+              Live_PU.append(('live', 'USD', 'PZM', 'buy', i[0], i[1]))
+
+          for i in Live_buy:
+              Live_PU.append(('live', 'PZM', 'USD', 'sell', i[0], i[1]))
 
 
 
@@ -144,9 +162,11 @@ def my_livecoin():
           df = pd.DataFrame(Live_PU, columns=columns)
 
           try:
-            df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
+              os.remove(main_path_data + "\\live_bd_PU.csv")
+              df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
           except Exception as e:
               print('#####   OOOPsss .... DB   ######')
+              os.remove(main_path_data + "\\live_bd_PU.csv")
               df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
 
 
@@ -166,50 +186,57 @@ def my_livecoin():
 
 
       elif symbol == "PZM/BTC":
-          a = book["asks"]
-          b = book["bids"]
+          L_b ={}
+          for b in sorted(book["bids"], key=lambda x: book["bids"][x][0], reverse=True):
+              L_b.update({book["bids"][b][0]: float(book["bids"][b][1])})
 
-          L_b = {}
-          for i in b.values():
-              L_b.update({i[0]: float(i[1])})
-          L_a = {}
-          for i in a.values():
-              L_a.update({i[0]: float(i[1])})
 
-          lb = OrderedDict(sorted(L_b.items(), key=lambda t: t[0]), reverse=False)
-          lbb = dict((k, v) for k, v in lb.items() if v > 0.1)
+          L_a ={}
+          for b in sorted(book["asks"], key=lambda x: book["asks"][x][0], reverse=False):
+              L_a.update({book["asks"][b][0]: float(book["asks"][b][1])})
 
-          la = OrderedDict(sorted(L_a.items(), key=lambda t: t[0]), reverse=False)
-          laa = dict((k, v) for k, v in la.items() if v > 0.1)
 
           Live_buy = {}
-          for k,v in lbb.items():
+          for k,v in L_b.items():
               if not Live_buy:
-                  Live_buy.update({k: float(v)})
+                  if float(v) <0.1:
+                      pass
+                  else:
+                    Live_buy.update({k: float(v)})
               else:
-                  if k == 'reverse':
+                  if float(v) < 0.1:
                       pass
                   else:
                       sump = float(v) + float(list(Live_buy.values())[-1])
                       Live_buy.update({k: float(sump)})
 
           Live_sell = {}
-          for k,v in laa.items():
+          for k,v in L_a.items():
               if not Live_sell:
-                  Live_sell.update({k: float(v)})
+                  if float(v) <0.1:
+                      pass
+                  else:
+                    Live_sell.update({k: float(v)})
               else:
-                  if k == 'reverse':
+                  if float(v) < 0.1:
                       pass
                   else:
                       sump = float(v) + float(list(Live_sell.values())[-1])
                       Live_sell.update({k: float(sump)})
 
-          Live_PU = []
-          for k, v in Live_sell.items():
-              Live_PU.append(('live', 'BTC', 'PZM', 'buy', k, v))
 
-          for k, v in Live_buy.items():
-              Live_PU.append(('live', 'PZM', 'BTC', 'sell', k, v))
+
+          Live_buy = list(Live_buy.items())[:5]
+          Live_sell = list(Live_sell.items())[:5]
+          print('LB', Live_buy)
+          print('LA', Live_sell)
+
+          Live_PU = []
+          for i in Live_sell:
+              Live_PU.append(('live', 'BTC', 'PZM', 'buy', i[0], i[1]))
+
+          for i in Live_buy:
+              Live_PU.append(('live', 'PZM', 'BTC', 'sell', i[0], i[1]))
 
           columns = ['birga','valin','valout','direction','rates','volume']
           df = pd.DataFrame(Live_PU, columns=columns)
@@ -217,9 +244,11 @@ def my_livecoin():
 
           # df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False)
           try:
-            df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
+              os.remove(main_path_data + "\\live_bd_PB.csv")
+              df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
           except Exception as e:
               print('#####   OOOPsss .... DB BTC  ######')
+              os.remove(main_path_data + "\\live_bd_PB.csv")
               df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
       else:
           pass

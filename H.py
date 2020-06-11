@@ -21,21 +21,24 @@ def my_hotbit():
                 rep2 = zlib.decompress(message, 16 + zlib.MAX_WBITS)
                 rep2 = str(rep2, 'utf-8')
                 rep2 = json.loads(rep2)
-                print(rep2, '\n', '\n')
-                if rep2['method'] == 'depth.update':
+                # print(rep2, '\n', '\n')
+                if rep2['method'] != 'depth.update':
+                    pass
+                else:
                     print('#################',rep2['params'][2])
                     if rep2['params'][0] == 'False':
                         pass
                     else:
                         if 'bids' not in rep2['params'][1]:
                             pass
-                        if 'asks' not in rep2['params'][1]:
+                        elif 'asks' not in rep2['params'][1]:
                             pass
                         else:
                             if rep2['params'][2] == 'PZMBTC':
                                 b = rep2['params'][1]["bids"][:5]
                                 a = rep2['params'][1]["asks"][:5]
-
+                                print('############################', rep2['params'][1]["asks"][:2])
+                                print(rep2, '\n', '\n')
                                 # print('###########   BBB :',b)
                                 # print('###########   BBB full:', rep2['params'][1]["bids"])
                                 #
@@ -88,12 +91,13 @@ def my_hotbit():
                                 columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
                                 df = pd.DataFrame(Hot_PU, columns=columns)
                                 # print(df)
-
+                                os.remove(main_path_data + "\\hot_bd_PB.csv")
                                 df.to_csv(main_path_data + "\\hot_bd_PB.csv", index=False)
                             elif rep2['params'][2] == 'PZMUSDT':
                                 b = rep2['params'][1]["bids"][:5]
                                 a = rep2['params'][1]["asks"][:5]
-
+                                # print('############################', rep2['params'][1]["asks"][:2])
+                                # print(rep2, '\n', '\n')
                                 # print('###########  USD  BBB :', b)
                                 # print('###########  USD  BBB full:', rep2['params'][1]["bids"])
                                 #
@@ -146,12 +150,12 @@ def my_hotbit():
                                 df = pd.DataFrame(Hot_PU, columns=columns)
                                 # print(df)
 
+                                os.remove(main_path_data + "\\hot_bd_PU.csv")
                                 df.to_csv(main_path_data + "\\hot_bd_PU.csv", index=False)
                             else:
                                 pass
-                else:
-                    pass
-                time.sleep(0.4)
+
+                time.sleep(0.5)
 
         thread.start_new_thread(receiv, ())
 
