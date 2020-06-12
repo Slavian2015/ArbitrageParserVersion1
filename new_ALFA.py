@@ -5,14 +5,16 @@ import time
 from random import choice
 from fake_useragent import UserAgent
 import os
-import sqlite3
-
+# import sqlite3
+import pandas as pd
 
 main_path_data = os.path.abspath("./data")
 
 
 url2 = 'https://btc-alpha.com/api/v1/orderbook/PZM_USD'
 url3 = 'https://btc-alpha.com/api/v1/orderbook/PZM_BTC'
+url6 = 'https://api.hotbit.io/api/v1/order.depth?market=PZM/BTC&limit=5&interval=1e-8'
+url5 = 'https://api.hotbit.io/api/v1/order.depth?market=PZM/USDT&limit=5&interval=1e-8'
 
 
 urls = [
@@ -80,6 +82,17 @@ def refresh():
         Alfa_sell = [*Alfa_sell.items()][:n]
         Alfa_buy = [*Alfa_buy.items()][:n]
 
+
+        print(Alfa_buy)
+        print(Alfa_sell)
+
+        #
+        # alfa_PU = []
+        # for i in Alfa_sell:
+        #     alfa_PU.append(('alfa', val1, val2, 'buy', i[0], i[1]))
+        # for i in Alfa_buy:
+        #     alfa_PU.append(('alfa', val2, val1, 'sell', i[0], i[1]))
+
         alfa_PU = []
         for i in Alfa_sell:
             alfa_PU.append(('alfa', val1, val2, 'buy', i[0], i[1]))
@@ -93,25 +106,45 @@ def refresh():
 
 
 
-    conn = sqlite3.connect(main_path_data + "\\alfa.db")
-    cursor = conn.cursor()
-
-    sql = 'DELETE FROM PZMUSD'
-    cursor.execute(sql)
-
-    sql2 = 'DELETE FROM PZMBTC'
-    cursor.execute(sql2)
+    # conn = sqlite3.connect(main_path_data + "\\alfa.db")
+    # cursor = conn.cursor()
+    #
+    # sql = 'DELETE FROM PZMUSD'
+    # cursor.execute(sql)
+    #
+    # sql2 = 'DELETE FROM PZMBTC'
+    # cursor.execute(sql2)
 
     list = [('https://btc-alpha.com/api/v1/orderbook/PZM_USD', 'USD', 'PZM', 5),('https://btc-alpha.com/api/v1/orderbook/PZM_BTC', 'BTC', 'PZM', 5)]
 
     for i in list:
         if i[1] == 'USD':
-            cursor.executemany("INSERT INTO PZMUSD VALUES (?,?,?,?,?,?)", ord(i[0],i[1],i[2],i[3]))
-        else:
-            cursor.executemany("INSERT INTO PZMBTC VALUES (?,?,?,?,?,?)", ord(i[0],i[1],i[2],i[3]))
+            columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+            df = pd.DataFrame(ord(i[0],i[1],i[2],i[3]), columns=columns)
 
-    conn.commit()
-    conn.close()
+            try:
+                os.remove(main_path_data + "\\alfa_bd_PU.csv")
+                df.to_csv(main_path_data + "\\alfa_bd_PU.csv", index=False, mode="w")
+            except Exception as e:
+                print('#####   OOOPsss .... DB   ######')
+                os.remove(main_path_data + "\\alfa_bd_PU.csv")
+                df.to_csv(main_path_data + "\\alfa_bd_PU.csv", index=False, mode="w")
+            # cursor.executemany("INSERT INTO PZMUSD VALUES (?,?,?,?,?,?)", ord(i[0],i[1],i[2],i[3]))
+        else:
+            columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+            df = pd.DataFrame(ord(i[0],i[1],i[2],i[3]), columns=columns)
+
+            try:
+                os.remove(main_path_data + "\\alfa_bd_PB.csv")
+                df.to_csv(main_path_data + "\\alfa_bd_PB.csv", index=False, mode="w")
+            except Exception as e:
+                print('#####   OOOPsss .... DB   ######')
+                os.remove(main_path_data + "\\alfa_bd_PB.csv")
+                df.to_csv(main_path_data + "\\alfa_bd_PB.csv", index=False, mode="w")
+            # cursor.executemany("INSERT INTO PZMBTC VALUES (?,?,?,?,?,?)", ord(i[0],i[1],i[2],i[3]))
+
+    # conn.commit()
+    # conn.close()
 
 if __name__ == "__main__":
     while True:

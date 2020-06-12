@@ -54,15 +54,165 @@ def my_livecoin():
     def printOrderBook(symbol):
         book = orderbooks[symbol]
 
-        # print("MY BIDS :", book['bids'])
-        # print("MY ASKS :", book['asks'])
+        print("MY BIDS :", book['bids'])
+        print("MY ASKS :", book['asks'])
 
 
-        for type in ["bids", "asks"]:
-            str = type + "raw: "
-            for b in sorted(book[type], reverse= (type=="bids")):
-                str += ("%s->%s\n" % (b, book[type][b]))
-            print (str)
+        # for type in ["bids", "asks"]:
+        #     str = type + "raw: "
+        #     for b in sorted(book[type], reverse= (type=="bids")):
+        #         str += ("%s->%s\n" % (b, book[type][b]))
+        #     print (str)
+
+        if symbol == "PZM/USD":
+            # a = book["asks"]
+            # b = book["bids"]
+
+            # for type in ["bids", "asks"]:
+            #     str = type+"raw: "
+            #     for b in sorted(book[type], key=lambda x: book[type][x][0], reverse=(type == "bids")):
+            #         str += ("%d:%s->%s\n" % (b, book[type][b][0], book[type][b][1]))
+            #
+            #     print(str)
+
+            L_b = {}
+            for k,v in book["bids"].items():
+                L_b.update({k: float(v[0])})
+
+            L_a = {}
+            for k,v in book["asks"].items():
+                L_a.update({k: float(v[0])})
+
+            Live_buy = {}
+            for k, v in L_b.items():
+                if not Live_buy:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        Live_buy.update({k: float(v)})
+                else:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        sump = float(v) + float(list(Live_buy.values())[-1])
+                        Live_buy.update({k: float(sump)})
+
+            Live_sell = {}
+            for k, v in L_a.items():
+                if not Live_sell:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        Live_sell.update({k: float(v)})
+                else:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        sump = float(v) + float(list(Live_sell.values())[-1])
+                        Live_sell.update({k: float(sump)})
+
+            Live_buy = list(Live_buy.items())[:5]
+            Live_sell = list(Live_sell.items())[:5]
+
+            print('LB USD', Live_buy)
+            print('LA USD', Live_sell)
+
+            Live_PU = []
+            for i in Live_sell:
+                Live_PU.append(('live', 'USD', 'PZM', 'buy', i[0], i[1]))
+
+            for i in Live_buy:
+                Live_PU.append(('live', 'PZM', 'USD', 'sell', i[0], i[1]))
+
+            columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+            df = pd.DataFrame(Live_PU, columns=columns)
+
+            try:
+                os.remove(main_path_data + "\\live_bd_PU.csv")
+                df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
+            except Exception as e:
+                print('#####   OOOPsss .... DB   ######')
+                os.remove(main_path_data + "\\live_bd_PU.csv")
+                df.to_csv(main_path_data + "\\live_bd_PU.csv", index=False, mode="w")
+
+            # import threading, queue
+            # to_write = queue.Queue()
+            #
+            # def writer():
+            #     # Call to_write.get() until it returns None
+            #     # for df in iter(to_write.get, None):
+            #     with open(main_path_data + "\\live_bd_PU.csv", 'w') as f:
+            #         df.to_csv(f, index=False)
+            #
+            # threading.Thread(target=writer).start()
+            # to_write.put(df)
+            # # enqueue None to instruct the writer thread to exit
+            # to_write.put(None)
+
+
+        elif symbol == "PZM/BTC":
+            L_b = {}
+            for k,v in book["bids"].items():
+                L_b.update({k: float(v[0])})
+
+            L_a = {}
+            for k,v in book["asks"].items():
+                L_a.update({k: float(v[0])})
+
+            Live_buy = {}
+            for k, v in L_b.items():
+                if not Live_buy:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        Live_buy.update({k: float(v)})
+                else:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        sump = float(v) + float(list(Live_buy.values())[-1])
+                        Live_buy.update({k: float(sump)})
+
+            Live_sell = {}
+            for k, v in L_a.items():
+                if not Live_sell:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        Live_sell.update({k: float(v)})
+                else:
+                    if float(v) < 0.1:
+                        pass
+                    else:
+                        sump = float(v) + float(list(Live_sell.values())[-1])
+                        Live_sell.update({k: float(sump)})
+
+            Live_buy = list(Live_buy.items())[:5]
+            Live_sell = list(Live_sell.items())[:5]
+            print('LB', Live_buy)
+            print('LA', Live_sell)
+
+            Live_PU = []
+            for i in Live_sell:
+                Live_PU.append(('live', 'BTC', 'PZM', 'buy', i[0], i[1]))
+
+            for i in Live_buy:
+                Live_PU.append(('live', 'PZM', 'BTC', 'sell', i[0], i[1]))
+
+            columns = ['birga', 'valin', 'valout', 'direction', 'rates', 'volume']
+            df = pd.DataFrame(Live_PU, columns=columns)
+            # print(df)
+
+            # df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False)
+            try:
+                os.remove(main_path_data + "\\live_bd_PB.csv")
+                df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
+            except Exception as e:
+                print('#####   OOOPsss .... DB BTC  ######')
+                os.remove(main_path_data + "\\live_bd_PB.csv")
+                df.to_csv(main_path_data + "\\live_bd_PB.csv", index=False, mode="w")
+        else:
+            pass
 
 
 
@@ -586,7 +736,8 @@ def my_livecoin():
 
     #test unsubscription
     # subscribeTrades('BTC/RUR', token="s1")
-    # subscribeOrderbook('PZM/USDT', 1, token="s2")
+    subscribeOrderbook('PZM/USD', 5, token="s2")
+    subscribeOrderbook('PZM/BTC', 5, token="s2")
     # # subscribeOrderbookRaw('BTC/RUR', 1, token="s3")
     # # subscribeCandle('BTC/RUR', LivecoinWSapi_pb2.SubscribeCandleChannelRequest.CANDLE_1_MINUTE, 1, token="s4")
     # # subscribeTicker('BTC/RUR', 1, token="s5")
@@ -598,8 +749,8 @@ def my_livecoin():
     # subscribeTrades('BTC/USD')
     # subscribeCandle('BTC/USD', LivecoinWSapi_pb2.SubscribeCandleChannelRequest.CANDLE_1_MINUTE, 10) # and give me 10 last candles
 
-    subscribeOrderbookRaw('PZM/USD', 5, token="s1")
-    subscribeOrderbookRaw('PZM/BTC', 5, token="s1")
+    # subscribeOrderbookRaw('PZM/USD', 5, token="s1")
+    # subscribeOrderbookRaw('PZM/BTC', 5, token="s1")
 
     # login("LOGIN")
 

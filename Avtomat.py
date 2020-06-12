@@ -645,7 +645,7 @@ def order(regims, birga_1, birga_2, val1_vol, val1, rate1, val2_vol, val2, val3_
         else:
             pass
 
-        a_file = open(main_path_data + "\\regim.json", "r")
+        a_file = open(main_path_data + "\\regims2.json", "r")
         regim = json.load(a_file)
         a_file.close()
         parametr1 = "{}/{}".format(val1, val2)
