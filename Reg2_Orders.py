@@ -78,7 +78,7 @@ def alfa(val1, val2, price, amount):
             def custom_round(number, ndigits=d):
                 return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
 
-            price = custom_round(price)
+            price = custom_round(float(price))
             print('PRICE after ####', price)
             pass
         else:
@@ -163,7 +163,7 @@ def alfa(val1, val2, price, amount):
                 # bot_sendtext2(
                 #     f" BIRGA ALFA +: {nl} {obj} {nl} {order}")
                 try:
-                    gg = obj['success']
+                    gg = obj['oid']
                 except:
                     gg = obj
                 return gg
@@ -176,6 +176,45 @@ def alfa(val1, val2, price, amount):
 
     else:
         return ["ОШИБКА"]
+def alfa_cancel(id):
+    #####  direction  (buy  / sell)
+    from time import time
+
+    a_file = open(main_path_data + "\\keys.json", "r")
+    json_object = json.load(a_file)
+    a_file.close()
+
+    input1 = json_object["1"]['key']
+    input2 = json_object["1"]['api']
+
+    if input1 != "Api key" and input2 != "Api secret":
+        # Свой класс исключений
+        class ScriptError(Exception):
+            pass
+
+        class ScriptQuitCondition(Exception):
+            pass
+
+        order = {
+            'order': id
+        }
+
+        def get_auth_headers(self, data):
+            msg = input1 + urlencode(sorted(data.items(), key=lambda val: val[0]))
+            sign = hmac.new(input2.encode(), msg.encode(), digestmod='sha256').hexdigest()
+
+            return {
+                'X-KEY': input1,
+                'X-SIGN': sign,
+                'X-NONCE': str(int(time() * 1000)),
+            }
+
+        response = requests.post('https://btc-alpha.com/api/v1/order-cancel/', data=order, headers=get_auth_headers({}, order))
+        obj = json.loads(response.text)
+        return obj
+
+    else:
+        return
 
 ########################     HOT    ##########################
 def hot(val1, val2, price, amount):
@@ -233,7 +272,7 @@ def hot(val1, val2, price, amount):
             def custom_round(number, ndigits=d):
                 return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
 
-            price = custom_round(price)
+            price = custom_round(float(price))
             print('PRICE after ####', price)
             pass
         else:
@@ -319,6 +358,65 @@ def hot(val1, val2, price, amount):
 
   else:
     return ["ОШИБКА"]
+def hot_cancel(val1, val2, id):
+
+    tickers_all = ['BTC/USD', 'BTC/USDT', 'PZM/USDT', 'ETH/USD', 'ETH/USDT', 'PZM/BTC', 'ETH/BTC']
+
+    parametr1 = "{}/{}".format(val1, val2)
+    parametr2 = "{}/{}".format(val2, val1)
+
+    for i in tickers_all:
+        if i == parametr1:
+          para = i
+          pass
+        elif i == parametr2:
+          para = i
+          pass
+
+
+
+    a_file = open(main_path_data + "\\keys.json", "r")
+    json_object = json.load(a_file)
+    a_file.close()
+
+    input1 = json_object["3"]['key']
+    input2 = json_object["3"]['api']
+
+    if input1 != "Api key" and input2 != "Api secret":
+        d = {
+          'api_key': str(input1),
+          'market': str(para),
+          'order_id': int(id),
+        }
+
+        L_b = {}
+        for b in sorted(d, reverse=False):
+          L_b.update({b: d[b]})
+        L_b.update({'secret_key': input2})
+
+        er = urlencode(L_b)
+
+        er = er.replace('%2F', '/')
+        result = hashlib.md5(er.encode())
+        sign = result.hexdigest().upper()
+
+        L_b2 = {}
+        for b in sorted(d, reverse=False):
+          L_b2.update({b: d[b]})
+
+        L_b2.update({'sign': sign})
+
+        url = urlencode(L_b2)
+
+        url = url.replace('%2F', '/')
+        url = 'https://api.hotbit.io/api/v1/order.cancel?' + url
+
+        response = requests.request("GET", url)
+        obj = json.loads(response.text)
+
+        return obj
+    else:
+        return ["ОШИБКА"]
 
 #######################     Live    ##########################
 def live(val1, val2, price, amount):
@@ -375,7 +473,7 @@ def live(val1, val2, price, amount):
             def custom_round(number, ndigits=d):
                 return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
 
-            price = custom_round(price)
+            price = custom_round(float(price))
             print('PRICE  ####', price)
             pass
         else:
@@ -472,6 +570,77 @@ def live(val1, val2, price, amount):
                 # nl = '\n'
                 # bot_sendtext2(
                 #     f" BIRGA LIVE +: {nl} {obj} {nl} {order}")
+                return obj['orderId']
+            except ValueError:
+                # Если не удалось перевести полученный ответ (вернулся не JSON)
+                return ScriptError('Ошибка анализа возвращаемых данных, получена строка', response)
+                # raise ScriptError('Ошибка анализа возвращаемых данных, получена строка', response)
+
+        return resm()
+
+    else:
+        return ["ОШИБКА"]
+def live_cancel(val1, val2, id):
+
+    tickers_all = ['BTC/USD', 'PZM/USD', 'PZM/USDT', 'ETH/USD', 'ETH/USDT', 'PZM/BTC', 'ETH/BTC']
+
+    parametr1 = "{}/{}".format(val1, val2)
+    parametr2 = "{}/{}".format(val2, val1)
+
+    for i in tickers_all:
+        if i == parametr1:
+            para = i
+            pass
+        elif i == parametr2:
+            para = i
+            pass
+
+
+    a_file = open(main_path_data + "\\keys.json", "r")
+    json_object = json.load(a_file)
+    a_file.close()
+
+    input1 = json_object["2"]['key']
+    input2 = json_object["2"]['api']
+
+
+    if input1 != "Api key" and input2 != "Api secret":
+        # Свой класс исключений
+        class ScriptError(Exception):
+            pass
+
+        class ScriptQuitCondition(Exception):
+            pass
+
+
+        order = {
+            'currencyPair': para,
+            'orderId': str(id)
+        }
+        order2 = urlencode(sorted(order.items(), key=lambda val: val[0]))
+
+        def get_auth_headers(self, data):
+            msg = urlencode(sorted(data.items(), key=lambda val: val[0]))
+            sign = hmac.new(input2.encode(), msg=msg.encode(), digestmod='sha256').hexdigest().upper()
+
+            return {
+                'Api-key': input1,
+                'Sign': sign,
+                "Content-type": "application/x-www-form-urlencoded"
+            }
+
+
+        response = requests.post('https://api.livecoin.net/exchange/cancellimit', data=order2,
+                                     headers=get_auth_headers({}, order))
+
+
+        def resm():
+            try:
+                # Полученный ответ переводим в строку UTF, и пытаемся преобразовать из текста в объект Python
+                obj = json.loads(response.text)
+
+                if obj['success'] == False:
+                    return obj['exception']
                 return obj['success']
             except ValueError:
                 # Если не удалось перевести полученный ответ (вернулся не JSON)
@@ -482,66 +651,3 @@ def live(val1, val2, price, amount):
 
     else:
         return ["ОШИБКА"]
-
-
-def bot_sendtext(bot_message):
-    ##########################    Telegram    ################################
-
-    ad = open(main_path_data + "\\keys.json", "r")
-    js_object = json.load(ad)
-    ad.close()
-    input1 = js_object["4"]['key']
-    input2 = js_object["4"]['api']
-
-    ### Send text message
-    bot_token = input1
-    bot_chatID = input2
-    send_text = 'https://api.telegram.org/bot' + bot_token + '/sendMessage?chat_id=' + bot_chatID + '&parse_mode=Markdown&text=' + bot_message
-    requests.get(send_text)
-    return
-
-def all_csv(birga_1, birga_2, rate1, rate2, val1, val2, val4, val1_vol, val2_vol, val4_vol, reponse_b1, reponse_b2, regim):
-    ###################    APPEND to CSV   all_data    #####################
-    import time
-    if reponse_b1 != 'Not Enough Money' or reponse_b2 != 'Not Enough Money':
-        done = int(round(time.time() * 1000))
-        now = dt.datetime.now()
-        df_all = pd.read_csv(main_path_data + "\\all_data.csv")
-        timer2 = now.strftime("%Y-%m-%d %H:%M:%S")
-        df2 = pd.DataFrame({"TIME": [timer2],
-                            "birga_x": [birga_1],
-                            "birga_y": [birga_2],
-                            "rates_x": [rate1],
-                            "rates_y": [rate2],
-                            "valin_x": [val1],
-                            "valin_y": [val2],
-                            "valout_y": [val4],
-                            "start": [val1_vol],
-                            "step": [val2_vol],
-                            "back": [val4_vol],
-                            "profit": [(float(val4_vol) - float(val1_vol))],
-                            "perc": [(((float(val4_vol) - float(val1_vol)) / float(val1_vol)) * 100)],
-                            "res_birga1": [reponse_b1],
-                            "res_birga2": [reponse_b2],
-                            "timer": [done],
-                            }, index=[0])
-        df_all = df2.append(df_all)
-        df_all.to_csv(main_path_data + "\\all_data.csv", header=True, index=False)
-
-        #################    TELEGRAM    #########################
-        profit = (float(val4_vol) - float(val1_vol))
-        perc = (((float(val4_vol) - float(val1_vol)) / float(val1_vol)) * 100)
-        nl = '\n'
-        val1_vol = ("{:.6f}".format(val1_vol))
-        val2_vol = ("{:.6f}".format(val2_vol))
-        val4_vol = ("{:.6f}".format(val4_vol))
-        profit = ("{:.6f}".format(profit))
-        perc = ("{:.2f}".format(perc))
-        bot_sendtext(
-            f" ЕСТЬ ВИЛКА: {nl} РЕЖИМ : {regim} {nl} {birga_1} / {birga_2} {nl} {reponse_b1} / {reponse_b2} {nl} {val1} -> {val2} -> {val4} {nl} {val1_vol} -> {val2_vol} -> {val4_vol} {nl} {profit} {nl} {perc} {nl} ")
-        return
-    else:
-        pass
-    return
-
-

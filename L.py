@@ -54,8 +54,8 @@ def my_livecoin():
     def printOrderBook(symbol):
         book = orderbooks[symbol]
 
-        print("MY BIDS :", book['bids'])
-        print("MY ASKS :", book['asks'])
+        # print("MY BIDS :", book['bids'])
+        # print("MY ASKS :", book['asks'])
 
 
         # for type in ["bids", "asks"]:
@@ -65,6 +65,7 @@ def my_livecoin():
         #     print (str)
 
         if symbol == "PZM/USD":
+            print("MY ASKS :", book['asks'])
             # a = book["asks"]
             # b = book["bids"]
 
@@ -75,13 +76,27 @@ def my_livecoin():
             #
             #     print(str)
 
+            # L_b2 = {}
+            # for b in sorted(book["bids"], key=lambda x: book["bids"][x][0], reverse=True):
+            #     L_b2.update({book["bids"][b][0]: float(book["bids"][b][1])})
+
+            # print('######## \n',L_b2,'\n######')
+
             L_b = {}
-            for k,v in book["bids"].items():
-                L_b.update({k: float(v[0])})
+            for b in sorted(book["bids"], reverse=True):
+                L_b.update({b: book["bids"][b][0]})
+
+            # L_b = {}
+            # for k,v in book["bids"].items():
+            #     L_b.update({k: float(v[0])})
+
+            # L_a = {}
+            # for k,v in book["asks"].items():
+            #     L_a.update({k: float(v[0])})
 
             L_a = {}
-            for k,v in book["asks"].items():
-                L_a.update({k: float(v[0])})
+            for b in sorted(book["asks"], reverse=False):
+                L_a.update({b: book["asks"][b][0]})
 
             Live_buy = {}
             for k, v in L_b.items():
@@ -114,7 +129,7 @@ def my_livecoin():
             Live_buy = list(Live_buy.items())[:5]
             Live_sell = list(Live_sell.items())[:5]
 
-            print('LB USD', Live_buy)
+            # print('LB USD', Live_buy)
             print('LA USD', Live_sell)
 
             Live_PU = []
@@ -189,8 +204,8 @@ def my_livecoin():
 
             Live_buy = list(Live_buy.items())[:5]
             Live_sell = list(Live_sell.items())[:5]
-            print('LB', Live_buy)
-            print('LA', Live_sell)
+            # print('LB', Live_buy)
+            # print('LA', Live_sell)
 
             Live_PU = []
             for i in Live_sell:
@@ -819,7 +834,7 @@ if __name__ == "__main__":
             my_livecoin()
             t2 = time.time()
             print("ALL TIME :", t2-t1)
-            time.sleep(0.2)
+            time.sleep(0.1)
         except Exception as e:
             print(e)
             time.sleep(5)

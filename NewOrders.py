@@ -72,13 +72,16 @@ def alfa(val1, val2, price, amount):
             # price = float(price)
             # print('PRICE  ####', price)
 
-            print('PRICE  before ####', price)
+            # print('PRICE  before ####', price)
             d = rools['alfa']['price_precision'][i]
 
-            def custom_round(number, ndigits=d):
-                return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
+            # def custom_round(number, ndigits=d):
+            #     return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
+            #
+            # price = custom_round(price)
 
-            price = custom_round(price)
+
+            price = round(float(price), d)
             print('PRICE after ####', price)
             pass
         else:
@@ -163,7 +166,7 @@ def alfa(val1, val2, price, amount):
                 # bot_sendtext2(
                 #     f" BIRGA ALFA +: {nl} {obj} {nl} {order}")
                 try:
-                    gg = obj['success']
+                    gg = obj['oid']
                 except:
                     gg = obj
                 return gg
@@ -218,7 +221,7 @@ def hot(val1, val2, price, amount):
             def custom_round(number, ndigits=d):
                 return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
 
-            amount = custom_round(amount)
+            amount = custom_round(float(price))
             print('AMOUNT 3 ####', amount)
 
             pass
@@ -375,7 +378,7 @@ def live(val1, val2, price, amount):
             def custom_round(number, ndigits=d):
                 return int(number * 10 ** ndigits) / 10.0 ** ndigits if ndigits else int(number)
 
-            price = custom_round(price)
+            price = custom_round(float(price))
             print('PRICE  ####', price)
             pass
         else:
@@ -472,7 +475,7 @@ def live(val1, val2, price, amount):
                 # nl = '\n'
                 # bot_sendtext2(
                 #     f" BIRGA LIVE +: {nl} {obj} {nl} {order}")
-                return obj['success']
+                return obj['orderId']
             except ValueError:
                 # Если не удалось перевести полученный ответ (вернулся не JSON)
                 return ScriptError('Ошибка анализа возвращаемых данных, получена строка', response)

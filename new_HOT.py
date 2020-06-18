@@ -87,8 +87,8 @@ def refresh():
         Alfa_buy = [*Alfa_buy.items()][:n]
 
 
-        # print(Alfa_buy)
-        # print(Alfa_sell)
+        print(Alfa_buy)
+        print(Alfa_sell)
 
         #
         # alfa_PU = []
